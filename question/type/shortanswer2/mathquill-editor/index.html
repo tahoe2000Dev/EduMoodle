@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=624">
+    <title>Editor Test</title>
+    <link rel="stylesheet" type="text/css" href="./mathquill/mathquill-basic.css">
+    <link rel="stylesheet" type="text/css" href="./mathquill-editor.css">
+    <style>
+        .content {
+            height: 2000px;
+            padding-top: 100px;
+            margin-left: 120px;
+            font-size: 150.0%;
+        }
+        .divider {
+            height: 50px;
+        }
+        #getresult {
+            width: 150px;
+            margin-right: 50px;
+        }
+    </style>
+</head>
+<body>
+<div class="content">
+    <div class="exp pure-u-2-3">
+        <span class="static-math"> (1- </span>
+        <span id="m1"></span>
+        <span class="static-math"> ) \frac{a^2+2a+1}{a} = a+1 </span>
+    </div>
+    <div class="divider"></div>
+    <div><span id="" class="static-math"> tip: \frac{1}{a+1}</span></div>
+    <div class="divider"></div>
+    <div class="exp">
+        <span class="static-math"> \frac{1}{3 + \sqrt{3}} + </span>
+        <span id="m2"></span>
+        <span class="static-math"> + \frac{1}{7\sqrt{5} + 5\sqrt{7}} + ... ...  + \frac{1}{49\sqrt{47} + 47\sqrt{49} } = 0.9 </span>
+    </div>
+    <div class="divider"></div>
+    <div><span id="" class="static-math"> tip: \frac{1}{5\sqrt{3} + 3\sqrt{5}}</span></div>
+    <div class="divider"></div>
+    <button id="getresult">点击获取输入</button>
+    <div id="result1"></div>
+    <div id="result2"></div>
+
+</div>
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script type="text/javascript" src="./mathquill/mathquill-basic.js"></script>
+<script type="text/javascript" src="./mathquill-editor.js"></script>
+<script>
+    $(document).ready(function(){
+        $('.static-math').each(function() { MQ.StaticMath(this); });
+
+        var m1 = new mathEditor('#m1')
+        var m2 = new mathEditor('#m2')
+
+        $("#getresult").click(function(){
+            var r1 = m1.getResult()
+            var r2 = m2.getResult()
+            $("#result1").text(r1)
+            $("#result2").text(r2)
+        })
+    })
+    
+
+</script>
+</body>
+</html>

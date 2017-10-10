@@ -1,0 +1,35 @@
+.mathquill-editor-button {
+      align-items: center;
+      background-color: #007fff;
+      border: none;
+      color: #fff;
+      padding: 0;
+      display: flex;
+      float: left;
+      height: 60px;
+      justify-content: center;
+      width: 60px;
+    }
+
+.buttons {
+    overflow: hidden;
+}
+.mathquill-editor {
+    text-align: center;
+    width: 181px;
+    min-height: 50px;
+    max-height: 100px;
+    border: 0px;
+    border-bottom: 1px solid black;
+    overflow-y: auto;
+    
+}
+
+.mq-editable-field.mq-focused {
+    box-shadow: none;
+    border-color: white;
+    border-bottom: 1px solid black;
+}
+.mq-sqrt-prefix {
+    transform: none !important;
+}
