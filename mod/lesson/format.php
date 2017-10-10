@@ -127,6 +127,78 @@ function lesson_save_question_options($question, $lesson, $contextid) {
             }
             break;
 
+
+        case LESSON_PAGE_MULTIANSWER2:
+        
+            $answers = array();
+            $maxfraction = -1;
+
+            // Insert all the new answers
+            foreach ($question->answer as $key => $dataanswer) {
+                if ($dataanswer != "") {
+                    $answer = clone($defaultanswer);
+                    if ($question->fraction[$key] >=0.5) {
+                        $answer->jumpto = LESSON_NEXTPAGE;
+                        $answer->score = 1;
+                    }
+                    $answer->grade = round($question->fraction[$key] * 100);
+                    $answer->answer   = $dataanswer;
+                    $answer->response = $question->feedback[$key]['text'];
+                    $answer->responseformat = 1;
+                    $answer->id = $DB->insert_record("lesson_answers", $answer);
+                    lesson_import_question_files('response', $question->feedback[$key], $answer, $contextid);
+                    $answers[] = $answer->id;
+                    if ($question->fraction[$key] > $maxfraction) {
+                        $maxfraction = $question->fraction[$key];
+                    }
+                }
+            }
+
+
+            /// Perform sanity checks on fractional grades
+            if ($maxfraction != 1) {
+                $maxfraction = $maxfraction * 100;
+                $result->notice = get_string("fractionsnomax", "lesson", $maxfraction);
+                return $result;
+            }
+            break;
+            
+
+        case LESSON_PAGE_SHORTANSWER2:
+        
+            $answers = array();
+            $maxfraction = -1;
+
+            // Insert all the new answers
+            foreach ($question->answer as $key => $dataanswer) {
+                if ($dataanswer != "") {
+                    $answer = clone($defaultanswer);
+                    if ($question->fraction[$key] >=0.5) {
+                        $answer->jumpto = LESSON_NEXTPAGE;
+                        $answer->score = 1;
+                    }
+                    $answer->grade = round($question->fraction[$key] * 100);
+                    $answer->answer   = $dataanswer;
+                    $answer->response = $question->feedback[$key]['text'];
+                    $answer->responseformat = $question->feedback[$key]['format'];
+                    $answer->id = $DB->insert_record("lesson_answers", $answer);
+                    lesson_import_question_files('response', $question->feedback[$key], $answer, $contextid);
+                    $answers[] = $answer->id;
+                    if ($question->fraction[$key] > $maxfraction) {
+                        $maxfraction = $question->fraction[$key];
+                    }
+                }
+            }
+
+
+            /// Perform sanity checks on fractional grades
+            if ($maxfraction != 1) {
+                $maxfraction = $maxfraction * 100;
+                $result->notice = get_string("fractionsnomax", "lesson", $maxfraction);
+                return $result;
+            }
+            break;
+
         case LESSON_PAGE_NUMERICAL:   // Note similarities to shortanswer.
 
             $answers = array();
@@ -348,6 +420,8 @@ class qformat_default {
                                'multichoice' => LESSON_PAGE_MULTICHOICE,
                                'truefalse'   => LESSON_PAGE_TRUEFALSE,
                                'shortanswer' => LESSON_PAGE_SHORTANSWER,
+                               'shortanswer2' => LESSON_PAGE_SHORTANSWER2,
+                               'multianswer2' => LESSON_PAGE_MULTIANSWER2,
                                'match'       => LESSON_PAGE_MATCHING,
                                'essay'       => LESSON_PAGE_ESSAY
                               );
@@ -415,7 +489,6 @@ class qformat_default {
             echo $OUTPUT->notification("There are no questions in this file!");
             return false;
         }
-
         //Avoid category as question type
         echo $OUTPUT->notification(get_string('importcount', 'lesson',
                 $this->count_questions($questions)), 'notifysuccess');
@@ -438,11 +511,14 @@ class qformat_default {
                     break;
                 // the good ones
                 case 'shortanswer' :
+                case 'multianswer2' :
+                case 'shortanswer2' :
                 case 'numerical' :
                 case 'truefalse' :
                 case 'multichoice' :
                 case 'match' :
                 case 'essay' :
+
                     $count++;
 
                     //Show nice formated question in one line.
@@ -452,7 +528,34 @@ class qformat_default {
                     $newpage->lessonid = $lesson->id;
                     $newpage->qtype = $this->qtypeconvert[$question->qtype];
                     switch ($question->qtype) {
+                        case 'multianswer2':
+                            $subquestions = $question->options->questions;
+                            $answersofmultianswer2 = array();
+                            $question->fraction = array(count($subquestions));
+                            $question->fraction = array(1);
+                            foreach($subquestions as $subquestion) {
+                                switch ($subquestion->qtype) {
+                                    case 'shortanswer':
+                                        $question->questiontext = preg_replace('/\{#\d+\}/', '_____', $question->questiontext, 1);
+                                        break;
+                                    case 'numerical':
+                                        $question->questiontext = preg_replace('/\{#\d+\}/', '******', $question->questiontext, 1);
+                                        break;
+                                    case 'shortanswer2':
+                                        $question->questiontext = preg_replace('/\{#\d+\}/', '=====', $question->questiontext, 1);
+                                        break;
+                                }
+                                $tempans = implode('##', $subquestion->answer);
+                                $answersofmultianswer2[] = $tempans;
+                            }
+                            $question->answer = array(implode(';', $answersofmultianswer2));
+                            break;
                         case 'shortanswer' :
+                            if (isset($question->usecase)) {
+                                $newpage->qoption = $question->usecase;
+                            }
+                            break;
+                        case 'shortanswer2' :
                             if (isset($question->usecase)) {
                                 $newpage->qoption = $question->usecase;
                             }
@@ -533,6 +636,7 @@ class qformat_default {
                         echo $OUTPUT->notification($result->notice);
                         return true;
                     }
+                
                     break;
             // the Bad ones
                 default :

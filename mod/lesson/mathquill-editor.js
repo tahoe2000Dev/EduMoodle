@@ -23,7 +23,7 @@ require(['jquery'], function($){
             $ContainerElem.css('position','relative')
             var $Editor, $buttons
 
-            $Editor = $('<div class="mathquill-editor"></div>').css('position', 'relative').css('display', 'inline-block').css('top', 5)
+            $Editor = $('<div class="mathquill-editor"></div>').css('position', 'relative').css('display', 'inline-block').css('top', 11)
             this.$Editor = $Editor
             this._getEditorPos()
             $buttons = $('<div class="buttons" button_id="' + self.id + '" style="display:none;"></div>')
@@ -176,77 +176,60 @@ require(['jquery'], function($){
 
 
     $(document).ready(function(){
-        if($('input[is_original_input=true]').length > 0){
-            $('input[is_original_input=true]').each(function(){
-                $('<span class="matheditor"></span>').insertBefore($(this));
-            })
-            $('.matheditor').each(function(){
-                var $self = $(this);
-                var m = new mathEditor($self);
-                var $original_input = $self.next('input');
-                var $user_input = $original_input.nextAll('input[name$=userinput]');
-            
-                if($original_input.val()){
-                    m.editor.latex($original_input.val());
-                }
-            
-                $self.on('change keydown keypress keyup', function(){
-                    setTimeout(function(){
-                        $original_input.val(m.getResult());
-                    });
-                })
+        $('.no-overflow').height($('.no-overflow').height() + 80);
 
-            })
-        } else {
-            var $finish_button = $('input[name=next]').length ? $('input[name=next]') : $('input[name=finish]');
-            $('.matheditor').each(function(){
-                var $self = $(this);
-                var m = new mathEditor($self);
-                var $original_input = $self.next('input');
-                var $user_input = $original_input.nextAll('input[name$=userinput]');
-                if($user_input.val()){
-                    $original_input.val($user_input.val());
-                    m.editor.latex($user_input.val());
-                } else if($original_input.val()){
-                    m.editor.latex($original_input.val());
-                }
-                
-                if($original_input.attr('readonly') == 'readonly'){
-                    $self.find('textarea').attr('disabled', 'disabled');
-                    $self.find('div').attr('contenteditable', 'false');
-                    m.$Editor.off('click focus');
-                    m.$Editor.css('background', '#eceeef');
-                }
-                $self.on('change keydown keypress keyup', function(){
-                    setTimeout(function(){
-                        $user_input.val(m.getResult());
-                    });
-                })
-                
-                var correct_answers = $original_input.nextAll('span[id$=ca]').text();
-                correct_answers = $.parseJSON(decode64(correct_answers));
-                $finish_button.on('click', function () {
-                    $user_input.val(m.getResult());
-                    $original_input.val($user_input.val());
-                    try {
-                        var input_mathexp = MathExpression.fromLatex($user_input.val());
-                        $.each(correct_answers, function(i, val){
-                            var correct_answer = MathExpression.fromLatex(val.answer);
-                            if(correct_answer.equals(input_mathexp)){                        
-                                $original_input.val(val.answer);
-                                return false;
-                            }
-                        })
-                    } catch(TypeError) {
-                        
-                    }
+        // $('input[name=answer]').each(function(){
+        //     var $original_input = $(this);
+        //     var $matheditor = $('<span class="matheditor"></span>');
+        //     $matheditor.insertBefore($original_input);
+        //     var m = new mathEditor($matheditor);
+        //     var correct_answers = $.parseJSON(decode64($('span[name=ca]').text()));
+        //     var $submitbutton = $('input[name=submitbutton]');
+        //     $submitbutton.on('click', function () {
+        //         $original_input.val(m.getResult());
+        //         try {
+        //             var input_mathexp = MathExpression.fromLatex($original_input.val());
+        //             $.each(correct_answers, function(i, val){
+        //                 var correct_answer = MathExpression.fromLatex(val.answer);
+        //                 if(correct_answer.equals(input_mathexp)){                        
+        //                     $original_input.val(val.answer);
+        //                     return false;
+        //                 }
+        //             })
+        //         } catch(TypeError) {
                     
+        //         }
+        //     })
+        // })
+
+
+        $formobj = $('#responseform');
+        $('.matheditor').each(function(){
+            var $self = $(this);
+            var $original_input = $self.next('input');
+            var m = new mathEditor($self);
+
+            var correct_answers = $original_input.nextAll('span[id$=ca]').text();
+            correct_answers = $.parseJSON(decode64(correct_answers));
+            
+            $formobj.on('submit', function () {
+                $original_input.val(m.getResult());
+                try {
+                    var input_mathexp = MathExpression.fromLatex($original_input.val());
+                    $.each(correct_answers, function(i, val){
+                        var correct_answer = MathExpression.fromLatex(val);
+                        if(correct_answer.equals(input_mathexp)){                        
+                            $original_input.val(val);
+                            return false;
+                        }
+                    })
+                } catch(TypeError) {
                     
-                })
+                }
 
 
             })
-        }
+        })
         
     })
 

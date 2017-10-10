@@ -3645,7 +3645,6 @@ abstract class lesson_base {
  * @property-read lesson $lesson The lesson this page belongs to
  * @property-read int $type The type of the page [question | structure]
  * @property-read typeid The unique identifier for the page type
- * @property-read typestring The string that describes this page type
  *
  * @abstract
  * @copyright  2009 Sam Hemelryk
@@ -4089,8 +4088,13 @@ abstract class lesson_page extends lesson_base {
 
                 $result->feedback .= $OUTPUT->box(format_text($this->get_contents(), $this->properties->contentsformat, $options),
                         'generalbox boxaligncenter');
-                $studentanswer = format_text($result->studentanswer, $result->studentanswerformat,
+                if (isset($result->studentanswerformat)) {
+                    // This is the student's answer so it should be cleaned.
+                    $studentanswer = format_text($result->studentanswer, $result->studentanswerformat,
                             array('context' => $context, 'para' => true));
+                } else {
+                    $studentanswer = format_string($result->studentanswer);
+                }
                 $result->feedback .= '<div class="correctanswer generalbox"><em>'
                         . get_string("youranswer", "lesson").'</em> : ' . $studentanswer;
                 if (isset($result->responseformat)) {
@@ -4469,7 +4473,6 @@ abstract class lesson_page extends lesson_base {
         $result->response        = '';
         $result->newpageid       = 0;       // stay on the page
         $result->studentanswer   = '';      // use this to store student's answer(s) in order to display it on feedback page
-        $result->studentanswerformat = FORMAT_MOODLE;
         $result->userresponse    = null;
         $result->feedback        = '';
         $result->nodefaultresponse  = false; // Flag for redirecting when default feedback is turned off
@@ -4848,7 +4851,7 @@ class lesson_page_type_manager {
         $basedir = $CFG->dirroot.'/mod/lesson/pagetypes/';
         $dir = dir($basedir);
         while (false !== ($entry = $dir->read())) {
-            if (strpos($entry, '.')===0 || !preg_match('#^[a-zA-Z]+\.php#i', $entry)) {
+            if (strpos($entry, '.')===0 || !preg_match('#^\w+\.php#i', $entry)) {
                 continue;
             }
             require_once($basedir.$entry);
