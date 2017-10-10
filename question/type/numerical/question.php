@@ -49,7 +49,7 @@ class qtype_numerical_question extends question_graded_automatically {
     public $ap;
 
     public function get_expected_data() {
-        $expected = array('answer' => PARAM_RAW_TRIMMED);
+        $expected = array('answer' => PARAM_RAW_TRIMMED, 'duplicate' => PARAM_RAW_TRIMMED);
         if ($this->has_separate_unit_field()) {
             $expected['unit'] = PARAM_RAW_TRIMMED;
         }
@@ -201,6 +201,10 @@ class qtype_numerical_question extends question_graded_automatically {
         }
 
         return null;
+    }
+
+    public function get_answers() {
+        return $this->answers;
     }
 
     public function get_correct_answer() {

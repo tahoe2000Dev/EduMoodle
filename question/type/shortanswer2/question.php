@@ -18,7 +18,7 @@
  * Short answer question definition class.
  *
  * @package    qtype
- * @subpackage shortanswer
+ * @subpackage shortanswer2
  * @copyright  2009 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -34,7 +34,7 @@ require_once($CFG->dirroot . '/question/type/questionbase.php');
  * @copyright  2009 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class qtype_shortanswer_question extends question_graded_by_strategy
+class qtype_shortanswer2_question extends question_graded_by_strategy
         implements question_response_answer_comparer {
     /** @var boolean whether answers should be graded case-sensitively. */
     public $usecase;
@@ -46,7 +46,7 @@ class qtype_shortanswer_question extends question_graded_by_strategy
     }
 
     public function get_expected_data() {
-        return array('answer' => PARAM_RAW_TRIMMED, 'duplicate' => PARAM_RAW_TRIMMED);
+        return array('answer' => PARAM_RAW_TRIMMED, 'userinput' => PARAM_RAW_TRIMMED, 'duplicate' => PARAM_RAW_TRIMMED);
     }
 
     public function summarise_response(array $response) {
@@ -66,7 +66,7 @@ class qtype_shortanswer_question extends question_graded_by_strategy
         if ($this->is_gradable_response($response)) {
             return '';
         }
-        return get_string('pleaseenterananswer', 'qtype_shortanswer');
+        return get_string('pleaseenterananswer', 'qtype_shortanswer2');
     }
 
     public function is_same_response(array $prevresponse, array $newresponse) {
@@ -93,11 +93,6 @@ class qtype_shortanswer_question extends question_graded_by_strategy
         $pattern = self::safe_normalize($pattern);
         $string = self::safe_normalize($string);
 
-        $string = preg_replace('/(\+|-|=)/', ' $1 ', $string);
-        $string = preg_replace('/(\s+)/', ' ', $string);
-        $string = preg_replace('/^\s+(\+|-)\s+/', '$1', $string);        
-        
-
         // Break the string on non-escaped runs of asterisks.
         // ** is equivalent to *, but people were doing that, and with many *s it breaks preg.
         $bits = preg_split('/(?<!\\\\)\*+/', $pattern);
@@ -105,9 +100,6 @@ class qtype_shortanswer_question extends question_graded_by_strategy
         // Escape regexp special characters in the bits.
         $escapedbits = array();
         foreach ($bits as $bit) {
-            $bit = preg_replace('/(\+|-|=)/', ' $1 ', $bit);
-            $bit = preg_replace('/(\s+)/', ' ', $bit);
-            $bit = preg_replace('/^\s+(\+|-)\s+/', '$1', $bit);
             $escapedbits[] = preg_quote(str_replace('\*', '*', $bit), '|');
         }
         // Put it back together to make the regexp.
@@ -117,6 +109,7 @@ class qtype_shortanswer_question extends question_graded_by_strategy
         if ($ignorecase) {
             $regexp .= 'i';
         }
+
         return preg_match($regexp, trim($string));
     }
 
@@ -162,9 +155,11 @@ class qtype_shortanswer_question extends question_graded_by_strategy
         foreach ($bits as $bit) {
             $cleanbits[] = str_replace('\*', '*', $bit);
         }
-
+        // var_dump($cleanbits);
+        // var_dump(s('\( ' . str_replace('\*', '*', $bit) . ' \)'));
         // Put it back together with spaces to look nice.
         return trim(implode(' ', $cleanbits));
+        
     }
 
     public function check_file_access($qa, $options, $component, $filearea,
